@@ -6,6 +6,10 @@ Solfront is a browser-native 3D space-combat game. Pilot a Martian fighter, defe
 
 The game runs entirely in the browser with local assets and supports both English and French interfaces.
 
+## Live demo
+
+[Play Solfront on Vercel](https://solfront-eight.vercel.app)
+
 ## Features
 
 - Large orbital combat arena with enemies approaching from every direction.
