@@ -1,10 +1,14 @@
 # Solfront
 
-> Mars will not surrender.
+> Mars tient la dernière ligne.
 
-Solfront is a browser-native 3D space-combat game. Pilot a Martian fighter, defend Ares orbital station through ten escalating Terran assault waves, and destroy the invading command ship.
+Solfront is a 3D space-combat game that runs in the browser. You fly a Martian fighter through a three-sector campaign:
 
-The game runs entirely in the browser with local assets and supports both English and French interfaces.
+1. **Mars:** defend Ares station, in low orbit, against four Terran waves.
+2. **Moon:** take down the shield of the Selene shipyard above the far side.
+3. **Earth:** bring down the Hegemon dreadnought above the clouds.
+
+Ships, stations, effects and sound are generated in code. The planets and the sky use real textures (credits below). The interface is available in French and English.
 
 ## Live demo
 
@@ -12,26 +16,27 @@ The game runs entirely in the browser with local assets and supports both Englis
 
 ## Features
 
-- Large orbital combat arena with enemies approaching from every direction.
-- Third-person inertial flight with boost, lateral thrust and combat evasion.
-- Hull, shield, energy and weapon-temperature management.
-- Fighter, interceptor and bomber classes followed by a dreadnought boss encounter.
-- Enemy state machine with pursuit, attack, patrol and evasion behaviours.
-- Tactical radar, target locking, combat telemetry and station integrity tracking.
-- Ten escalating waves, score tracking, victory and defeat states.
-- Persistent English and French interface selection under **Options**.
-- Local NASA planetary imagery and locally hosted Poly Pizza spacecraft models.
+- **Campaign:** three sectors with their own objectives and a briefing before each, then victory and defeat screens. You can resume the current sector.
+- **Planets:** Earth, the Moon and Mars, with atmosphere and terminator shaders. Earth also has night lights, clouds and specular oceans. The sky is a Milky Way panorama.
+- **Procedural models:** fighters, interceptors, bombers, the Hegemon dreadnought, Ares station, and the Selene shipyard with its pylons and reactor.
+- **Flight:** inertial flight with throttle, boost, roll and a sideways dodge. Lasers build heat and can overheat. You also have homing missiles with a lock-on.
+- **Enemy AI:** enemies attack in roles (pursuit, attack runs, escort, bombing) and evade. Your wingman Vega flies with you, and the Wingmen perk brings a second one, Orion.
+- **Perks:** between sectors you pick one modification out of three (afterburner, swarm missiles, cryo cooling, Aegis shield, and more).
+- **Effects:** bloom, engine trails, explosions with shockwaves, camera shake and slow motion on big kills.
+- **HUD:** target lock with lead marker, off-screen arrows, objective markers, comms, kill feed, combo and score.
+- **Options:** difficulty (Recruit, Pilot, Ace), mouse sensitivity, Y-axis inversion, volume and language. Your best score is saved locally.
+- **Input:** keyboard and mouse, or a gamepad. If the browser refuses pointer lock, a free-mouse mode takes over.
 
 ## Run locally
 
-Requirements: Node.js 20 or newer.
+You need Node.js 22 or newer.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Production validation:
+Production checks:
 
 ```bash
 npm run lint
@@ -43,71 +48,72 @@ npm run preview
 
 | Input | Action |
 | --- | --- |
-| `W` or `Z` | Accelerate |
-| `S` | Brake / reverse |
-| `A` or `Q`, and `D` | Lateral thrusters |
-| Mouse | Pitch and yaw |
-| Left click | Fire laser cannons |
-| Right click | Lock a target |
-| `Shift` | Boost, consuming energy |
-| `Space` | Combat evade |
-| `R` | Select the nearest enemy |
-| `Esc` | Pause or resume |
+| Mouse | Aim and steer |
+| Left click | Lasers |
+| Right click or `F` | Missile (hold the target in the reticle to lock) |
+| `W` / `S` | Throttle up / down |
+| `Shift` | Boost |
+| `Q` or `A`, `E` or `D` | Roll |
+| `Space` | Dodge |
+| `R` | Next target |
+| `Esc` or `P` | Pause |
 
-Click the flight area once after deployment to link mouse control. Both AZERTY and QWERTY keyboard layouts are supported.
+Click the screen once after launch to capture the mouse. Both AZERTY and QWERTY layouts work.
 
 ## Technology
 
-- React 19 and TypeScript
-- Vite 8
-- Three.js, React Three Fiber and Drei
+- Three.js r185, with custom shaders and post-processing
+- TypeScript
+- React 19, for the interface only
 - Zustand
-- Tailwind CSS 4
+- Vite 8
 - Oxlint
 
-There is no backend, account system, multiplayer service or runtime dependency on a third-party asset host.
+There is no backend. Every asset is served locally.
 
 ## Project structure
 
 ```text
 src/
-  components/
-    game/       # Three.js canvas, entities, effects and mission director
-    hud/        # Radar, crosshair, target lock and telemetry
-    screens/    # Menu, briefing, pause and mission outcomes
-  data/         # Enemy and wave definitions
-  hooks/        # Flight input and targeting
-  stores/       # Game, player and persisted settings state
-  systems/      # AI, combat, collision, waves and runtime registry
-  types/        # Shared game types
-  i18n.ts       # English and French interface dictionaries
+  game/
+    Game.ts       # loop, player flight, combat, camera, HUD frame
+    missions.ts   # the three sectors and the menu skirmish
+    ai.ts         # enemy and wingman behaviour
+    models/       # procedural ships and stations
+    world/        # planets, sky, scenery
+    fx/           # lasers, trails, explosions, particles
+    audio.ts      # synthesised sound (Web Audio)
+    input.ts      # keyboard, mouse, gamepad, pointer lock
+  ui/             # React screens and stylesheet
+  i18n.ts         # French and English strings
+  store.ts        # interface state
+legacy/           # the previous version, kept for reference
 ```
 
-Per-frame transforms live in a mutable runtime registry rather than React state. Zustand carries mission state, player telemetry and user settings without forcing the React tree to render at the Three.js frame rate.
+The game runs outside React. Each frame, Three.js updates the scene and the HUD writes straight to the DOM. React only renders the menus and other screens.
 
 ## Asset credits and licences
 
-### NASA planetary imagery
+### Textures
 
-Planetary textures are stored locally under `public/textures/planets/`.
-
-| Local asset | Official source | Credit |
+| File | Source | Credit / licence |
 | --- | --- | --- |
-| `earth.jpg` | [Blue Marble Next Generation](https://visibleearth.nasa.gov/images/73909/december-blue-marble-next-generation-w-topography-and-bathymetry) | NASA Earth Observatory / Reto Stöckli |
-| `earth-clouds.png` | [Blue Marble: Clouds](https://visibleearth.nasa.gov/images/57747/blue-marble-clouds) | NASA Goddard / Reto Stöckli |
-| `moon.jpg` | [NASA CGI Moon Kit](https://svs.gsfc.nasa.gov/4720/) | NASA SVS / Ernie Wright / LRO WAC |
-| `mars.jpg` | [NASA/JPL Mars Texture Map](https://space.jpl.nasa.gov/tmaps/mars.html) | NASA / JPL / USGS Viking imagery |
+| `planets/earth.jpg` | [Blue Marble Next Generation](https://visibleearth.nasa.gov/images/73909/december-blue-marble-next-generation-w-topography-and-bathymetry) | NASA Earth Observatory / Reto Stöckli (public domain) |
+| `planets/earth-clouds.jpg` | [Blue Marble: Clouds](https://visibleearth.nasa.gov/images/57747/blue-marble-clouds) | NASA Goddard / Reto Stöckli (public domain) |
+| `planets/earth-night.jpg` | [Solar System Scope](https://www.solarsystemscope.com/textures/) | Solar System Scope, based on NASA imagery (CC BY 4.0) |
+| `planets/earth-normal.jpg`, `planets/earth-specular.jpg` | [three.js examples](https://github.com/mrdoob/three.js/tree/dev/examples/textures/planets) | three.js authors (MIT) |
+| `planets/mars.jpg` | [Solar System Scope](https://www.solarsystemscope.com/textures/) | Solar System Scope, based on NASA/JPL imagery (CC BY 4.0) |
+| `planets/moon.jpg` | [Solar System Scope](https://www.solarsystemscope.com/textures/) | Solar System Scope, based on NASA LRO imagery (CC BY 4.0) |
+| `sky/milky-way.jpg` | [Solar System Scope](https://www.solarsystemscope.com/textures/) | Solar System Scope, based on ESO/S. Brunier (CC BY 4.0) |
 
-### Poly Pizza spacecraft
+The textures were resized to 4096 px (8192 px for the sky) and re-encoded. Nothing else was changed.
 
-Spacecraft models are stored locally under `public/models/ships/` and normalized or faction-tinted at runtime.
+### Fonts
 
-| In-game use | Model | Licence |
-| --- | --- | --- |
-| Martian fighter | [Spaceship by Liz Reddington](https://poly.pizza/m/5nWeu4IQXVX) | Creative Commons Attribution |
-| Earth fighter | [Spaceship by Quaternius](https://poly.pizza/m/uCeLfsdmNP) | CC0 / Public Domain |
-| Earth interceptor | [Space Craft Speeder by Kenney](https://poly.pizza/m/mlQBUQRUpM) | CC0 / Public Domain |
-| Earth bomber | [Spaceship by Quaternius](https://poly.pizza/m/xNbtFQwirO) | CC0 / Public Domain |
-| Terran command ship | [Colored Freighter by Jacques Fourie](https://poly.pizza/m/d0P6-jqeIzK) | Creative Commons Attribution |
+[Panchang](https://www.fontshare.com/fonts/panchang) and [Switzer](https://www.fontshare.com/fonts/switzer) are by the Indian Type Foundry and are served by Fontshare under the ITF Free Font License.
 
-The licences above apply to their respective assets. No separate licence is granted for the Solfront source code unless one is added explicitly.
+### Code-generated content
+
+All ships, stations, effects and sounds are generated in code. No third-party 3D model is used.
+
+These licences cover only the assets listed above. The Solfront source code has no licence unless one is added.
